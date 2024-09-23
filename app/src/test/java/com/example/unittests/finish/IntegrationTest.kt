@@ -95,10 +95,10 @@ class IntegrationTest {
             domainMapper = CharacterDomainMapper(),
             dispatcher = ioDispatcher,
         )
-        val consumeCharactersUseCase = ConsumeCharactersUseCase(
+        val consumeCharactersUseCase = ConsumeCharactersUseCase.Base(
             characterRepository = characterRepository,
         )
-        val consumeFavoritesUseCase = ConsumeFavoritesUseCase(
+        val consumeFavoritesUseCase = ConsumeFavoritesUseCase.Base(
             favoritesRepository = favoritesRepository,
         )
         val addFavoriteUseCase = AddFavoriteUseCase(

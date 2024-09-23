@@ -15,6 +15,7 @@ import com.example.unittests.databinding.FragmentCharacterListBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import com.example.unittests.characters.presentation.adapter.CharactersAdapter
+import com.example.unittests.characters.presentation.finish.CharacterListViewModel
 
 @AndroidEntryPoint
 class CharactersFragment : Fragment() {
@@ -57,7 +58,9 @@ class CharactersFragment : Fragment() {
                 launch {
                     viewModel.state.collect { state ->
                         when {
-                            state.isLoading -> showLoading()
+                            state.isLoading -> {
+                                showLoading()
+                            }
                             state.hasError -> {
                                 Toast.makeText(
                                     requireContext(),
@@ -68,7 +71,9 @@ class CharactersFragment : Fragment() {
                                 viewModel.errorHasShown()
                             }
 
-                            else -> showCharacterList(characterStateList = state.characterListState)
+                            else -> {
+                                showCharacterList(characterStateList = state.characterListState)
+                            }
                         }
                     }
                 }

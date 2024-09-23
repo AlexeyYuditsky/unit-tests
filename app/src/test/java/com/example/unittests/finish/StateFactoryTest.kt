@@ -9,48 +9,44 @@ import org.junit.Before
 import org.junit.Test
 
 class StateFactoryTest {
-    private lateinit var sut: StateFactoryImpl
 
-    @Before
-    fun setup() {
-        sut = StateFactoryImpl()
-    }
+    private val sut = StateFactoryImpl()
 
     @Test
     fun `create WHEN favorites are empty EXPECT isFavorite is false`() {
         // arrange
-        val character = Character(id = "1", name ="Rick", image = "image")
+        val character = Character(id = "1", name = "Rick", image = "image")
 
         // act
         val state = sut.create(character, setOf())
 
         // assert
-        Assert.assertEquals(false, state.isFavorite)
+        Assert.assertFalse(state.isFavorite)
     }
 
     @Test
     fun `create WHEN my character is in favorites EXPECT isFavorite is true`() {
         // arrange
-        val character = Character(id = "1", name ="Rick", image = "image")
+        val character = Character(id = "1", name = "Rick", image = "image")
         val favorites = setOf(FavoriteCharacter("1"))
 
         // act
         val productState = sut.create(character, favorites)
 
         // assert
-        Assert.assertEquals(true, productState.isFavorite)
+        Assert.assertTrue(productState.isFavorite)
     }
 
     @Test
     fun `create WHEN my character is not in favorites EXPECT isFavorite is false`() {
         // arrange
-        val character = Character(id = "1", name ="Rick", image = "image")
+        val character = Character(id = "1", name = "Rick", image = "image")
         val favorites = setOf(FavoriteCharacter("2"))
 
         // act
         val productState = sut.create(character, favorites)
 
         // assert
-        Assert.assertEquals(false, productState.isFavorite)
+        Assert.assertFalse(productState.isFavorite)
     }
 }

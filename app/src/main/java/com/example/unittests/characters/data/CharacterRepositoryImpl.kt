@@ -17,16 +17,14 @@ class CharacterRepositoryImpl @Inject constructor(
     private val characterRemoteDataSource: CharacterRemoteDataSource,
     private val dataMapper: CharacterDataMapper,
     private val domainMapper: CharacterDomainMapper,
-    private val dispatcher: CoroutineDispatcher,
+    dispatcher: CoroutineDispatcher,
 ): CharacterRepository {
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
 
     override fun consumeProducts(): Flow<List<Character>> {
         scope.launch {
             val characters = characterRemoteDataSource.getCharacters()
-            characterLocalDataSource.saveCharacters(
-                characters.map(dataMapper::toEntity)
-            )
+            characterLocalDataSource.saveCharacters(characters.map(dataMapper::toEntity))
         }
         return characterLocalDataSource
             .consumeCharacters()
