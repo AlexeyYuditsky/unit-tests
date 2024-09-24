@@ -7,33 +7,45 @@ import com.example.unittests.characters.domain.ConsumeCharactersUseCase
 import com.example.unittests.characters.domain.ConsumeFavoritesUseCase
 import com.example.unittests.characters.domain.FavoriteCharacter
 import com.example.unittests.characters.domain.RemoveFavoriteUseCase
+import com.example.unittests.characters.presentation.CharacterState
 import com.example.unittests.characters.presentation.StateFactory
 import com.example.unittests.characters.presentation.finish.CharacterListViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.junit.MockitoJUnitRunner
+import com.example.unittests.R
 
-@RunWith(MockitoJUnitRunner::class)
 class CharacterListViewModelTest {
 
     private val consumeFavoritesUseCase = object : ConsumeFavoritesUseCase {
         override fun invoke(): Flow<List<FavoriteCharacter>> = flowOf(listOf())
     }
 
-    @Mock
-    lateinit var addFavoriteUseCase: AddFavoriteUseCase
+    private val stateFactory = object : StateFactory {
+        override fun create(
+            character: Character,
+            favorites: Set<FavoriteCharacter>
+        ): CharacterState {
+            return if (character.id == "1") {
+                CharacterState(id = "1")
+            } else {
+                CharacterState(id = "2")
+            }
+        }
+    }
 
-    @Mock
-    lateinit var removeFavoriteUseCase: RemoveFavoriteUseCase
+    private val removeFavoriteUseCase = object : RemoveFavoriteUseCase {
+        lateinit var passedFavoriteCharacter: FavoriteCharacter
 
-    @Mock
-    lateinit var stateFactory: StateFactory
+        override suspend fun invoke(favoriteCharacter: FavoriteCharacter) {
+            passedFavoriteCharacter = favoriteCharacter
+        }
+    }
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -43,6 +55,14 @@ class CharacterListViewModelTest {
         val consumeCharactersUseCase = object : ConsumeCharactersUseCase {
             override fun invoke(): Flow<List<Character>> = flowOf()
         }
+        val addFavoriteUseCase = object : AddFavoriteUseCase {
+            lateinit var passedFavoriteCharacter: FavoriteCharacter
+
+            override suspend fun invoke(favoriteCharacter: FavoriteCharacter) {
+                passedFavoriteCharacter = favoriteCharacter
+            }
+        }
+
         val vm = CharacterListViewModel(
             consumeCharactersUseCase = consumeCharactersUseCase,
             stateFactory = stateFactory,
@@ -56,37 +76,35 @@ class CharacterListViewModelTest {
         Assert.assertTrue(vm.state.value.isLoading)
     }
 
-    /*@Test
+    @Test
     fun `requestCharacters WHEN characters are loaded EXPECT reset isLoading flag and set data`() {
-        // arrange
-        val expectedProducts = load2Characters()
-
-        // act
-        sut.requestCharacters()
-
-        // assert
-        Assert.assertFalse(sut.state.value.isLoading)
-        assertEquals(expectedProducts, sut.state.value.characterListState)
-    }
-
-    @Test
-    fun `requestCharacters WHEN product loading has error EXPECT state has en error`() {
-        // arrange
-        whenever(consumeCharactersUseCase.invoke()).thenReturn(flow { throw IllegalStateException() })
-
-        // act
-        sut.requestCharacters()
-
-        // assert
-        Assert.assertTrue(sut.state.value.hasError)
-        assertEquals(R.string.error_wile_loading_data, sut.state.value.errorRes)
-    }*/
-
-    @Test
-    fun `addToFavorites EXPECT change isFavorite flag to true`() = runTest {
         val consumeCharactersUseCase = object : ConsumeCharactersUseCase {
-            override fun invoke(): Flow<List<Character>> = flowOf()
+            override fun invoke(): Flow<List<Character>> {
+                return flowOf(listOf(character(id = "1"), character(id = "2")))
+            }
         }
+
+        val addFavoriteUseCase = object : AddFavoriteUseCase {
+            lateinit var passedFavoriteCharacter: FavoriteCharacter
+
+            override suspend fun invoke(favoriteCharacter: FavoriteCharacter) {
+                passedFavoriteCharacter = favoriteCharacter
+            }
+        }
+
+        val stateFactory = object : StateFactory {
+            override fun create(
+                character: Character,
+                favorites: Set<FavoriteCharacter>
+            ): CharacterState {
+                return if (character.id == "1") {
+                    CharacterState(id = "1")
+                } else {
+                    CharacterState(id = "2")
+                }
+            }
+        }
+
         val vm = CharacterListViewModel(
             consumeCharactersUseCase = consumeCharactersUseCase,
             stateFactory = stateFactory,
@@ -94,34 +112,120 @@ class CharacterListViewModelTest {
             addFavoriteUseCase = addFavoriteUseCase,
             removeFavoriteUseCase = removeFavoriteUseCase,
         )
-        // act
+        val expectedProducts = listOf(CharacterState(id = "1"), CharacterState(id = "2"))
+
+        vm.requestCharacters()
+
+        Assert.assertFalse(vm.state.value.isLoading)
+        assertEquals(expectedProducts, vm.state.value.characterListState)
+    }
+
+    @Test
+    fun `requestCharacters WHEN product loading has error EXPECT state has en error`() {
+        val consumeCharactersUseCase = object : ConsumeCharactersUseCase {
+            override fun invoke(): Flow<List<Character>> {
+                return flow { throw IllegalStateException() }
+            }
+        }
+
+        val addFavoriteUseCase = object : AddFavoriteUseCase {
+            lateinit var passedFavoriteCharacter: FavoriteCharacter
+
+            override suspend fun invoke(favoriteCharacter: FavoriteCharacter) {
+                passedFavoriteCharacter = favoriteCharacter
+            }
+        }
+
+        val stateFactory = object : StateFactory {
+            override fun create(
+                character: Character,
+                favorites: Set<FavoriteCharacter>
+            ): CharacterState {
+                return if (character.id == "1") {
+                    CharacterState(id = "1")
+                } else {
+                    CharacterState(id = "2")
+                }
+            }
+        }
+
+        val vm = CharacterListViewModel(
+            consumeCharactersUseCase = consumeCharactersUseCase,
+            stateFactory = stateFactory,
+            consumeFavoritesUseCase = consumeFavoritesUseCase,
+            addFavoriteUseCase = addFavoriteUseCase,
+            removeFavoriteUseCase = removeFavoriteUseCase,
+        )
+
+        vm.requestCharacters()
+
+        Assert.assertTrue(vm.state.value.hasError)
+        assertEquals(R.string.error_wile_loading_data, vm.state.value.errorRes)
+    }
+
+    @Test
+    fun `addToFavorites EXPECT change isFavorite flag to true`() = runTest {
+        val consumeCharactersUseCase = object : ConsumeCharactersUseCase {
+            override fun invoke(): Flow<List<Character>> = flowOf()
+        }
+        val addFavoriteUseCase = object : AddFavoriteUseCase {
+            lateinit var passedFavoriteCharacter: FavoriteCharacter
+
+            override suspend fun invoke(favoriteCharacter: FavoriteCharacter) {
+                passedFavoriteCharacter = favoriteCharacter
+            }
+        }
+
+        val vm = CharacterListViewModel(
+            consumeCharactersUseCase = consumeCharactersUseCase,
+            stateFactory = stateFactory,
+            consumeFavoritesUseCase = consumeFavoritesUseCase,
+            addFavoriteUseCase = addFavoriteUseCase,
+            removeFavoriteUseCase = removeFavoriteUseCase,
+        )
+
         vm.addToFavorites("1")
 
-        // assert
-       // verify(addFavoriteUseCase).invoke(FavoriteCharacter("1"))
+        val expected = FavoriteCharacter("1")
+        val actual = addFavoriteUseCase.passedFavoriteCharacter
+
+        assertEquals(expected, actual)
     }
 
-    /*@Test
+    @Test
     fun `removeFromFavorites EXPECT change isFavorite flag to true`() = runTest {
-        // act
-        sut.removeFromFavorites("1")
+        val consumeCharactersUseCase = object : ConsumeCharactersUseCase {
+            override fun invoke(): Flow<List<Character>> = flowOf()
+        }
+        val removeFavoriteUseCase = object : RemoveFavoriteUseCase {
+            lateinit var passedFavoriteCharacter: FavoriteCharacter
 
-        // assert
-        verify(removeFavoriteUseCase).invoke(FavoriteCharacter("1"))
+            override suspend fun invoke(favoriteCharacter: FavoriteCharacter) {
+                passedFavoriteCharacter = favoriteCharacter
+            }
+        }
+        val addFavoriteUseCase = object : AddFavoriteUseCase {
+            lateinit var passedFavoriteCharacter: FavoriteCharacter
+
+            override suspend fun invoke(favoriteCharacter: FavoriteCharacter) {
+                passedFavoriteCharacter = favoriteCharacter
+            }
+        }
+
+        val vm = CharacterListViewModel(
+            consumeCharactersUseCase = consumeCharactersUseCase,
+            stateFactory = stateFactory,
+            consumeFavoritesUseCase = consumeFavoritesUseCase,
+            addFavoriteUseCase = addFavoriteUseCase,
+            removeFavoriteUseCase = removeFavoriteUseCase,
+        )
+        vm.removeFromFavorites("1")
+
+        val expected = FavoriteCharacter("1")
+        val actual = removeFavoriteUseCase.passedFavoriteCharacter
+
+        assertEquals(expected, actual)
     }
-
-    private fun load2Characters(): List<CharacterState> {
-        whenever(consumeCharactersUseCase.invoke())
-            .thenReturn(flowOf(listOf(character(id = "1"), character(id = "2"))))
-
-        val state1 = CharacterState(id = "1")
-        val state2 = CharacterState(id = "2")
-
-        whenever(stateFactory.create(argThat { id == "1" }, any())).thenReturn(state1)
-        whenever(stateFactory.create(argThat { id == "2" }, any())).thenReturn(state2)
-
-        return listOf(state1, state2)
-    }*/
 
     private fun character(
         id: String = "",

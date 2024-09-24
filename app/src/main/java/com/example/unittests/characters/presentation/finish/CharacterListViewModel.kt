@@ -47,7 +47,7 @@ class CharacterListViewModel @Inject constructor(
                 _state.update { screenState -> screenState.copy(isLoading = true) }
             }
             .onEach { listState ->
-                _state.update { screenState ->
+               _state.update { screenState ->
                     screenState.copy(
                         isLoading = false,
                         characterListState = listState,

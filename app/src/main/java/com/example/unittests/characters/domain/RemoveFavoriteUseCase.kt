@@ -2,10 +2,16 @@ package com.example.unittests.characters.domain
 
 import javax.inject.Inject
 
-class RemoveFavoriteUseCase @Inject constructor(
-    private val favoritesRepository: FavoritesRepository,
-) {
-    suspend operator fun invoke(favoriteCharacter: FavoriteCharacter) {
-        favoritesRepository.removeFromFavorites(favoriteCharacter)
+interface RemoveFavoriteUseCase {
+
+    suspend operator fun invoke(favoriteCharacter: FavoriteCharacter)
+
+    class Base @Inject constructor(
+        private val favoritesRepository: FavoritesRepository,
+    ) : RemoveFavoriteUseCase {
+        override suspend fun invoke(favoriteCharacter: FavoriteCharacter) {
+            favoritesRepository.removeFromFavorites(favoriteCharacter)
+        }
     }
 }
+

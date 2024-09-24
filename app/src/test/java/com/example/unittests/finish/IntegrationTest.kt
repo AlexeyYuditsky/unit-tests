@@ -101,10 +101,10 @@ class IntegrationTest {
         val consumeFavoritesUseCase = ConsumeFavoritesUseCase.Base(
             favoritesRepository = favoritesRepository,
         )
-        val addFavoriteUseCase = AddFavoriteUseCase(
+        val addFavoriteUseCase = AddFavoriteUseCase.Base(
             favoritesRepository = favoritesRepository,
         )
-        val removeFavoriteUseCase = RemoveFavoriteUseCase(
+        val removeFavoriteUseCase = RemoveFavoriteUseCase.Base(
             favoritesRepository = favoritesRepository,
         )
         sut = CharacterListViewModel(
